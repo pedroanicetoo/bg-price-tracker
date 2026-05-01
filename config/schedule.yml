@@ -1,0 +1,31 @@
+# config/schedule.yml
+# sidekiq-cron schedule — loaded in config/initializers/sidekiq.rb via SidekiqCron::Job.load_from_hash
+#
+# All times are UTC. Application logic converts to America/Sao_Paulo where needed.
+#
+# Jobs are intentionally left commented out until the corresponding job class is implemented.
+
+# price_collector_hot:
+#   cron: "0 * * * *"          # every hour
+#   class: "PriceCollectorJob"
+#   args: ["hot"]
+#   queue: low
+
+# price_collector_longtail:
+#   cron: "0 */6 * * *"        # every 6 hours
+#   class: "PriceCollectorJob"
+#   args: ["longtail"]
+#   queue: low
+
+# alert_dispatcher:
+#   cron: "*/15 * * * *"       # every 15 minutes
+#   class: "AlertDispatcherJob"
+#   queue: critical
+
+# weekly_summary:
+#   cron: "15 0 * * *"         # daily at 00:15 UTC
+#   class: "WeeklySummaryJob"
+#   queue: default
+
+# Empty hash required so sidekiq-cron does not raise "Not supported schedule format"
+{}

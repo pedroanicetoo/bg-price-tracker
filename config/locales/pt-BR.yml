@@ -1,0 +1,27 @@
+pt-BR:
+  activerecord:
+    errors:
+      messages:
+        record_invalid: "A validação falhou: %{errors}"
+        blank: "não pode ficar em branco"
+        taken: "já está em uso"
+        invalid: "não é válido"
+  active_record:
+    models:
+      product:
+        attributes:
+          canonical_name: "Nome"
+          publisher: "Editora"
+          edition: "Edição"
+          language: "Idioma"
+          category: "Categoria"
+          aliases: "Aliases"
+          price: "Preço"
+          categories:
+            board_games: "BoardGame"
+            expansion: "Expansão"
+  services:
+    product_not_found: Não encontrei nenhum produto chamado %{product} Verifique o nome e tente novamente. 🔍
+    command_types:
+      add: "Adicionar"
+      help: "Ajuda"

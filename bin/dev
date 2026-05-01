@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# bin/dev — start the full local development environment
+# Usage: ./bin/dev [up|down|reset|test|logs]
+
+set -euo pipefail
+
+COMMAND=${1:-up}
+
+case "$COMMAND" in
+  up)
+    echo "==> Starting local environment (Docker Compose)..."
+    docker compose up --build
+    ;;
+  down)
+    echo "==> Stopping local environment..."
+    docker compose down
+    ;;
+  reset)
+    echo "==> Resetting local environment (removes volumes)..."
+    docker compose down -v
+    echo "==> Rebuilding..."
+    docker compose up --build
+    ;;
+  test)
+    echo "==> Running test suite inside web container..."
+    docker compose run --rm \
+      -e RAILS_ENV=test \
+      web bundle exec rspec "${@:2}"
+    ;;
+  logs)
+    docker compose logs -f "${@:2}"
+    ;;
+  console)
+    docker compose exec web bundle exec rails console
+    ;;
+  migrate)
+    docker compose exec web bundle exec rails db:migrate
+    ;;
+  *)
+    echo "Usage: bin/dev [up|down|reset|test|logs|console|migrate]"
+    exit 1
+    ;;
+esac

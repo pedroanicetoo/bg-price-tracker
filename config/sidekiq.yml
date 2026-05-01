@@ -1,0 +1,12 @@
+# config/sidekiq.yml
+---
+:concurrency: <%= ENV.fetch("SIDEKIQ_CONCURRENCY", 5) %>
+:timeout: 30
+:max_retries: 3
+
+:queues:
+  - [critical, 3]   # WhatsApp outbound, alert dispatch
+  - [default, 2]    # inbound message processing
+  - [low, 1]        # price collection, weekly digest
+
+# sidekiq-cron jobs are configured in config/schedule.yml
