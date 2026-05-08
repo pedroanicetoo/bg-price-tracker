@@ -1,7 +1,7 @@
 class ProductSearchService
   MAX_RESULTS = 5
 
-  def initialize(query, parser: GeminiProductParserService.new)
+  def initialize(query, parser: ComparaJogosCrawlerService.new)
     @query  = query.to_s.strip
     @parser = parser
   end
