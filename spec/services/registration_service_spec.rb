@@ -5,16 +5,16 @@ RSpec.describe RegistrationService do
 
   describe "#call" do
     context "when user does not exist yet" do
-      it "creates a pending user and returns welcome message" do
-        result = nil
+      let(:result) { described_class.new(phone: phone, text: "oi", profile_name: "Pedro").call }
 
-        expect {
-          result = described_class.new(phone: phone, text: "oi", profile_name: "Pedro").call
-        }.to change(User, :count).by(1)
-
+      it "creates a pending user with the correct attributes" do
+        expect { result }.to change(User, :count).by(1)
         created = User.order(:id).last
         expect(created.phone).to eq(phone)
         expect(created.consent_status).to eq("pending")
+      end
+
+      it "returns a welcome message" do
         expect(result.messages.first).to include("BG Price Tracker")
       end
     end

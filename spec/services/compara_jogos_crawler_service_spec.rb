@@ -1,9 +1,9 @@
 require "rails_helper"
 
 RSpec.describe ComparaJogosCrawlerService do
-  let(:connection) { instance_double(Faraday::Connection) }
-
   subject(:service) { described_class.new(connection: connection) }
+
+  let(:connection) { instance_double(Faraday::Connection) }
 
   def gql_entry(name:, slug: nil, type: "game", min_price_new: 189.90, new_count: 3, publishers: [])
     {
@@ -29,7 +29,7 @@ RSpec.describe ComparaJogosCrawlerService do
   end
 
   def stub_post(body, status: 200)
-    req = double("faraday_request", headers: {})
+    req = instance_double(Faraday::Request, headers: {})
     allow(req).to receive(:body=)
     response = instance_double(Faraday::Response, status: status, body: body)
     allow(connection).to receive(:post).and_yield(req).and_return(response)
@@ -129,8 +129,10 @@ RSpec.describe ComparaJogosCrawlerService do
 
     context "when query is blank" do
       it "returns nil without making any HTTP request" do
-        expect(connection).not_to receive(:post)
-        expect(service.call("   ")).to be_nil
+        allow(connection).to receive(:post)
+        result = service.call("   ")
+        expect(result).to be_nil
+        expect(connection).not_to have_received(:post)
       end
     end
 

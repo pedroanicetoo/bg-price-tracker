@@ -10,19 +10,22 @@ RSpec.describe OnBoardFlowService do
 
       it "delegates to AppendingCollectionService with extracted query" do
         appender = instance_double(AppendingCollectionService, call: cmd_result)
-        expect(AppendingCollectionService).to receive(:new).with(user: user, query: "catan").and_return(appender)
+        allow(AppendingCollectionService).to receive(:new).with(user: user, query: "catan").and_return(appender)
 
         result = service.call
+
+        expect(AppendingCollectionService).to have_received(:new).with(user: user, query: "catan")
         expect(result.messages).to eq(["ok"])
       end
 
       it "supports english add command" do
         appender = instance_double(AppendingCollectionService, call: cmd_result)
-        service = described_class.new(user: user, text: "add wingspan")
+        english_service = described_class.new(user: user, text: "add wingspan")
+        allow(AppendingCollectionService).to receive(:new).with(user: user, query: "wingspan").and_return(appender)
 
-        expect(AppendingCollectionService).to receive(:new).with(user: user, query: "wingspan").and_return(appender)
+        result = english_service.call
 
-        result = service.call
+        expect(AppendingCollectionService).to have_received(:new).with(user: user, query: "wingspan")
         expect(result.messages).to eq(["ok"])
       end
     end

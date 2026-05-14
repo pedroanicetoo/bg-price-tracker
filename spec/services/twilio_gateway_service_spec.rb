@@ -19,27 +19,32 @@ RSpec.describe TwilioGatewayService do
   end
 
   describe "#send_message" do
-    it "sends message and returns Twilio message object" do
-      twilio_message = instance_double(Twilio::REST::Api::V2010::AccountContext::MessageInstance, sid: "SM123")
-      expect(messages_api).to receive(:create)
+    let(:twilio_message) do
+      instance_double(Twilio::REST::Api::V2010::AccountContext::MessageInstance, sid: "SM123")
+    end
+
+    it "sends message to the correct recipient and returns the Twilio object" do
+      allow(messages_api).to receive(:create)
         .with(from: "whatsapp:+14155238886", to: "whatsapp:+5511999999999", body: "oi")
         .and_return(twilio_message)
 
       result = described_class.new.send_message(to: "whatsapp:+5511999999999", body: "oi")
+
+      expect(messages_api).to have_received(:create)
+        .with(from: "whatsapp:+14155238886", to: "whatsapp:+5511999999999", body: "oi")
       expect(result).to eq(twilio_message)
     end
 
-    it "retries transient errors and succeeds" do
-      twilio_message = instance_double(Twilio::REST::Api::V2010::AccountContext::MessageInstance, sid: "SM124")
+    it "retries transient errors and returns the successful result" do
       transient = rest_error(status: 429, code: 20429, message: "rate limit")
-
+      success_msg = instance_double(Twilio::REST::Api::V2010::AccountContext::MessageInstance, sid: "SM124")
       service = described_class.new
       allow(service).to receive(:sleep)
-      expect(messages_api).to receive(:create).and_raise(transient).ordered
-      expect(messages_api).to receive(:create).and_return(twilio_message).ordered
-
+      allow(messages_api).to receive(:create)
+        .and_invoke(->(*_) { raise transient }, ->(*_) { success_msg })
       result = service.send_message(to: "whatsapp:+5511999999999", body: "oi")
-      expect(result).to eq(twilio_message)
+      expect(messages_api).to have_received(:create).twice
+      expect(result).to eq(success_msg)
     end
 
     it "raises service error for non-retryable errors" do

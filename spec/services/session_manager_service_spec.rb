@@ -1,18 +1,17 @@
 require "rails_helper"
 
 RSpec.describe SessionManagerService, type: :service do
-  let(:redis_mock) { instance_double(Redis) }
-
   subject(:manager) { described_class.new(redis: redis_mock) }
 
+  let(:redis_mock) { instance_double(Redis) }
   let(:phone) { "+5562999999999" }
 
   describe "#set" do
     it "stores the session with 30-minute TTL" do
-      expect(redis_mock).to receive(:setex)
-        .with("session:#{phone}", 30.minutes.to_i, anything)
-
+      allow(redis_mock).to receive(:setex)
       manager.set(phone, state: :consent_pending, data: { profile_name: "Test" })
+      expect(redis_mock).to have_received(:setex)
+        .with("session:#{phone}", 30.minutes.to_i, anything)
     end
 
     it "serializes state as a string" do
@@ -72,16 +71,13 @@ RSpec.describe SessionManagerService, type: :service do
     end
   end
 
-  # ── #clear ─────────────────────────────────────────────────────────────────
-
   describe "#clear" do
     it "deletes the session key from Redis" do
-      expect(redis_mock).to receive(:del).with("session:#{phone}")
+      allow(redis_mock).to receive(:del)
       manager.clear(phone)
+      expect(redis_mock).to have_received(:del).with("session:#{phone}")
     end
   end
-
-  # ── #exists? ───────────────────────────────────────────────────────────────
 
   describe "#exists?" do
     it "returns true when session key exists" do
@@ -141,19 +137,18 @@ RSpec.describe SessionManagerService, type: :service do
 
       it "does nothing when session does not exist" do
         allow(redis_mock).to receive(:get).with("session:#{phone}").and_return(nil)
-        expect(redis_mock).not_to receive(:setex)
-
+        allow(redis_mock).to receive(:setex)
         manager.clear_nested(phone, :x)
+        expect(redis_mock).not_to have_received(:setex)
       end
     end
   end
 
-  # ── Key isolation ──────────────────────────────────────────────────────────
-
   describe "key namespacing" do
     it "prefixes keys with 'session:'" do
-      expect(redis_mock).to receive(:setex).with(start_with("session:"), anything, anything)
+      allow(redis_mock).to receive(:setex)
       manager.set(phone, state: :welcome)
+      expect(redis_mock).to have_received(:setex).with(start_with("session:"), anything, anything)
     end
 
     it "uses different keys for different phones" do

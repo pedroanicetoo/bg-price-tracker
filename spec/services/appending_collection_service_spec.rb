@@ -25,65 +25,67 @@ RSpec.describe AppendingCollectionService do
       end
     end
 
-    context "when a product is found" do
+    context "when a saved product is already in the user's collection" do
       let!(:saved_product) { create(:product, :catan) }
 
-      context "and the product is already in the user's collection" do
-        before { create(:collection_item, user: user, product: saved_product) }
+      before { create(:collection_item, user: user, product: saved_product) }
 
-        it "returns success without creating a duplicate" do
-          result = build_service("Catan", search_result: [saved_product]).call
+      it "returns success without creating a duplicate" do
+        result = build_service("Catan", search_result: [saved_product]).call
 
-          expect(result.done).to be true
-          expect(result.messages.first).to include("Catan")
-          expect(CollectionItem.where(user: user, product: saved_product).count).to eq(1)
-        end
+        expect(result.done).to be true
+        expect(result.messages.first).to include("Catan")
+        expect(CollectionItem.where(user: user, product: saved_product).count).to eq(1)
+      end
+    end
+
+    context "when a saved product is not yet in the user's collection" do
+      let!(:saved_product) { create(:product, :catan) }
+
+      it "adds the product and returns a success message" do
+        result = build_service("Catan", search_result: [saved_product]).call
+
+        expect(result.done).to be true
+        expect(result.messages.first).to include("Catan")
+        expect(CollectionItem.exists?(user: user, product: saved_product)).to be true
+      end
+    end
+
+    context "when the search returns an unsaved product (from external API)" do
+      let(:unsaved_product) do
+        Product.new(
+          canonical_name: "Catan",
+          publisher: "Devir",
+          category: "boardgame_base",
+          language: "pt-BR",
+          aliases: [],
+          slug: "catan"
+        )
       end
 
-      context "and the product is not yet in the user's collection" do
-        it "adds the product and returns a success message" do
-          result = build_service("Catan", search_result: [saved_product]).call
+      it "persists the product and adds it to the collection" do
+        result = build_service("Catan", search_result: [unsaved_product]).call
 
-          expect(result.done).to be true
-          expect(result.messages.first).to include("Catan")
-          expect(CollectionItem.exists?(user: user, product: saved_product)).to be true
-        end
+        expect(result.done).to be true
+        expect(Product.exists?(slug: "catan")).to be true
+        expect(CollectionItem.exists?(user: user)).to be true
+      end
+    end
+
+    context "when the user has reached the collection limit" do
+      let!(:saved_product) { create(:product, :catan) }
+
+      before do
+        products = create_list(:product, CollectionItem::LIMIT)
+        products.each { |p| create(:collection_item, user: user, product: p) }
       end
 
-      context "and the search returns an unsaved product (from external API)" do
-        let(:unsaved_product) do
-          Product.new(
-            canonical_name: "Catan",
-            publisher: "Devir",
-            category: "boardgame_base",
-            language: "pt-BR",
-            aliases: [],
-            slug: "catan"
-          )
-        end
+      it "returns an error message mentioning the limit" do
+        result = build_service("Catan", search_result: [saved_product]).call
 
-        it "persists the product and adds it to the collection" do
-          result = build_service("Catan", search_result: [unsaved_product]).call
-
-          expect(result.done).to be true
-          expect(Product.exists?(slug: "catan")).to be true
-          expect(CollectionItem.exists?(user: user)).to be true
-        end
-      end
-
-      context "and the user has reached the collection limit" do
-        before do
-          products = create_list(:product, CollectionItem::LIMIT)
-          products.each { |p| create(:collection_item, user: user, product: p) }
-        end
-
-        it "returns an error message mentioning the limit" do
-          result = build_service("Catan", search_result: [saved_product]).call
-
-          expect(result.done).to be true
-          expect(result.messages.first).to match(/limite/)
-          expect(CollectionItem.where(user: user, product: saved_product).count).to eq(0)
-        end
+        expect(result.done).to be true
+        expect(result.messages.first).to match(/limite/)
+        expect(CollectionItem.where(user: user, product: saved_product).count).to eq(0)
       end
     end
   end

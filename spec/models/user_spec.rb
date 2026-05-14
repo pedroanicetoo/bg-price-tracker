@@ -55,16 +55,22 @@ RSpec.describe User, type: :model do
     let!(:revoked_user)  { create(:user, :revoked) }
 
     describe ".accepted" do
-      it "returns only accepted users" do
-        expect(User.accepted).to include(accepted_user)
-        expect(User.accepted).not_to include(pending_user, revoked_user)
+      it "includes accepted users" do
+        expect(described_class.accepted).to include(accepted_user)
+      end
+
+      it "excludes pending and revoked users" do
+        expect(described_class.accepted).not_to include(pending_user, revoked_user)
       end
     end
 
     describe ".active" do
-      it "returns accepted non-anonymized users" do
-        expect(User.active).to include(accepted_user)
-        expect(User.active).not_to include(revoked_user)
+      it "includes accepted non-anonymized users" do
+        expect(described_class.active).to include(accepted_user)
+      end
+
+      it "excludes revoked users" do
+        expect(described_class.active).not_to include(revoked_user)
       end
     end
   end

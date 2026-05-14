@@ -1,10 +1,10 @@
 require "rails_helper"
 
 RSpec.describe CollectionItem, type: :model do
+  subject(:item) { build(:collection_item, user: user, product: product) }
+
   let(:user)    { create(:user) }
   let(:product) { create(:product, :catan) }
-
-  subject(:item) { build(:collection_item, user: user, product: product) }
 
   describe "associations" do
     it { is_expected.to belong_to(:user) }
