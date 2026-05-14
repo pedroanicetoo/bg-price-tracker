@@ -9,8 +9,6 @@ class CollectionItem < ApplicationRecord
   validates :product_id, uniqueness: { scope: :user_id, message: "já está na sua coleção" }
   validate  :collection_limit_not_exceeded, on: :create
 
-
-
   before_validation :set_added_at, on: :create
 
   private

@@ -65,7 +65,7 @@ class ComparaJogosCrawlerService
 
     gql_type = CATEGORY_TO_TYPE.fetch(type.to_s, "game")
     entries  = graphql_search(query, gql_type)
-    best     = select_best(entries)
+    best     = select_most_reliable(entries)
     return nil unless best
 
     build_result(best)
@@ -102,10 +102,10 @@ class ComparaJogosCrawlerService
     raise ParseError, "JSON parse error: #{e.message}"
   end
 
-  def select_best(entries)
+  def select_most_reliable(entries)
     entries
       .select { |e| e["product"].present? && e["min_price_new"].to_f > 0 }
-      .sort_by { |e| e["product"]["name"] }.first
+      .sort_by { |e| e["product"]["name"] }.sort_by { |e| e["min_price_new"] }.last
   end
 
   def build_result(entry)

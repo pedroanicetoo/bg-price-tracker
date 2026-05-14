@@ -5,27 +5,8 @@
 #
 # Jobs are intentionally left commented out until the corresponding job class is implemented.
 
-# price_collector_hot:
-#   cron: "0 * * * *"          # every hour
-#   class: "PriceCollectorJob"
-#   args: ["hot"]
-#   queue: low
-
-# price_collector_longtail:
-#   cron: "0 */6 * * *"        # every 6 hours
-#   class: "PriceCollectorJob"
-#   args: ["longtail"]
-#   queue: low
-
-# alert_dispatcher:
-#   cron: "*/15 * * * *"       # every 15 minutes
-#   class: "AlertDispatcherJob"
-#   queue: critical
-
-# weekly_summary:
-#   cron: "15 0 * * *"         # daily at 00:15 UTC
-#   class: "WeeklySummaryJob"
-#   queue: default
-
-# Empty hash required so sidekiq-cron does not raise "Not supported schedule format"
-{}
+alert_dispatcher:
+  cron: "*/2 * * * *"       # every 2 minutes
+  class: "MessageNotificationSchedulerJob"
+  queue: "critical"
+  active_job: true
